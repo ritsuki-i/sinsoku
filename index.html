@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>- 神速 -</title>
     <link rel="icon" href="./img/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,23 +10,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Hina+Mincho&display=swap" rel="stylesheet">
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            /* ★ 修正: flex関連を削除 */
             min-height: 100vh;
             margin: 0;
-            /* ★ 初期背景を設定 */
             background-image: url('./img/background.png'); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            background-color: #222;
+            background-color: #000;
             color: white;
             font-family: 'Hina Mincho', serif;
-            /* ★ 背景切り替えをスムーズに */
             transition: background-image 0.5s ease-in-out;
+            overflow: hidden; 
         }
+
+        #game-container {
+            position: absolute;
+            width: 960px; 
+            height: 540px; 
+            overflow: hidden;
+            transform-origin: top left; 
+            z-index: 1;
+        }
+
         canvas {
             border: 2px solid #ccc;
             background-color: rgba(0, 0, 0, 0.8); 
@@ -34,7 +40,9 @@
             z-index: 1;
         }
         .overlay {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 960px;
             height: 540px;
             display: flex;
@@ -70,43 +78,107 @@
         }
         #gameOverScreen { color: #ff4444; }
         #victoryScreen { color: #44ff44; }
+
+        .game-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 1.5em;
+            font-family: 'Hina Mincho', serif;
+            z-index: 100;
+            display: none;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .game-button.ready {
+            display: block;
+            background-color: rgba(0, 255, 255, 0.7); 
+        }
+        .game-button.aiming {
+            display: block;
+            background-color: rgba(255, 0, 0, 0.7); 
+        }
+
+        #rotate-device-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            color: white;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            text-align: center;
+            font-family: 'Hina Mincho', serif;
+        }
+        @media (orientation: portrait) {
+            #rotate-device-overlay {
+                display: flex;
+            }
+            #game-container {
+                display: none;
+            }
+            .game-button {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
     
-    <div id="startScreen" class="overlay active">
-        <p>- 神速 -</p>
-        <button id="startButton">始める</button>
-        <p class="key-hint" style="margin-top: 20px;">[クリック]: 通常攻撃 (一撃で撃破)</p>
-        <p class="key-hint">[Space] ゲージMAXで: 必殺・7秒間時間停止</p>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+        
+        <div id="startScreen" class="overlay active">
+            <p>- 神速 -</p>
+            <button id="startButton">始める</button>
+            <p class="key-hint" style="margin-top: 20px;">[クリック]: 通常攻撃 (一撃で撃破)</p>
+            <p class="key-hint">[Space] ゲージMAXで: 必殺・7秒間時間停止</p>
+        </div>
+
+        <div id="gameOverScreen" class="overlay">
+            <p>GAME OVER</p>
+            <p id="gameOverLevelDisplay" class="key-hint" style="margin-top: 10px; font-size: 1em;">到達レベル: 1</p>
+            <button id="restartButton">再挑戦</button>
+        </div>
+
+        <div id="victoryScreen" class="overlay">
+            <p>VICTORY</p>
+            <button id="nextLevelButton">次の戦場へ</button>
+            <p id="currentLevelDisplay" class="key-hint" style="margin-top: 20px;">現在のレベル: 1</p>
+        </div>
     </div>
 
-    <div id="gameOverScreen" class="overlay">
-        <p>GAME OVER</p>
-        <p id="gameOverLevelDisplay" class="key-hint" style="margin-top: 10px; font-size: 1em;">到達レベル: 1</p>
-        <button id="restartButton">再挑戦</button>
+    <div id="rotate-device-overlay">
+        <p>画面を横向きにしてください</p>
     </div>
 
-    <div id="victoryScreen" class="overlay">
-        <p>VICTORY</p>
-        <button id="nextLevelButton">次の戦場へ</button>
-        <p id="currentLevelDisplay" class="key-hint" style="margin-top: 20px;">現在のレベル: 1</p>
-    </div>
+    <button id="ultimateButton" class="game-button"></button>
+
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('game-container'); 
+        const ultimateButton = document.getElementById('ultimateButton');
 
         const CANVAS_WIDTH = canvas.width;
         const CANVAS_HEIGHT = canvas.height;
+
+        // --- ★ 修正: グローバルスケール変数を追加 ---
+        let gameScale = 1;
 
         // --- 画像ロード ---
         const playerImage = new Image();
         playerImage.src = './img/samurai.png';
         const hissatsuImage = new Image();
         hissatsuImage.src = './img/hissatsu.png';
-        // ★ 必殺技背景画像はJSではロード不要 (CSSで制御するため)
 
         // --- ゲームの状態 ---
         const GAME_STATE = {
@@ -144,10 +216,8 @@
         let ultimateGauge = 0;
         const maxUltimateGauge = 480;
         const hitStunDuration = 30;
-        
         let cutsceneTimer = 0;
-        const cutsceneDuration = 60; // 1秒
-        
+        const cutsceneDuration = 120; // 2秒
         let timeStopTimer = 0;
         const timeStopDuration = 420; // 7秒
 
@@ -168,7 +238,7 @@
         // --- レベル管理 ---
         let currentLevel = 1;
 
-        // ★ 背景切り替え関数
+        // --- 背景切り替え関数 ---
         function setBodyBackground(type) {
             if (type === 'hissatsu') {
                 document.body.style.backgroundImage = "url('./img/hissatsu_background.png')";
@@ -187,19 +257,17 @@
             gameOverScreen.classList.remove('active');
             victoryScreen.classList.remove('active');
             currentState = GAME_STATE.MENU; 
-            setBodyBackground('normal'); // ★ 背景を戻す
+            setBodyBackground('normal');
         }
 
         // --- 次のレベルへ進むための初期化 ---
         function initGameForNextLevel() {
             currentLevel++;
-            
             player.hp += (player.hp * 0.5);
             if (player.hp > player.maxHp) {
                 player.hp = player.maxHp;
             }
             player.hp = Math.round(player.hp);
-
             resetGameElements();
             startScreen.classList.remove('active');
             gameOverScreen.classList.remove('active');
@@ -207,7 +275,7 @@
             currentState = GAME_STATE.IDLE;
         }
 
-        // ゲーム要素のリセット（HP、ゲージ以外）
+        // --- ゲーム要素のリセット ---
         function resetGameElements() {
             enemies = [];
             attackTargets = [];
@@ -247,19 +315,28 @@
             resetGameElements(); 
             startScreen.classList.remove('active');
             currentState = GAME_STATE.IDLE;
-            setBodyBackground('normal'); // ★ 背景を通常に
+            setBodyBackground('normal');
+        }
+
+        // --- 必殺技発動処理 ---
+        function triggerUltimate() {
+            if (currentState === GAME_STATE.IDLE && ultimateGauge >= maxUltimateGauge) {
+                currentState = GAME_STATE.ULT_CUTSCENE;
+                cutsceneTimer = cutsceneDuration;
+                timeStopEffectAlpha = 1; 
+                attackTargets = []; 
+                ultimateGauge = 0;
+                setBodyBackground('hissatsu'); 
+            }
         }
 
         // --- 必殺技終了処理 ---
         function endAimingPhase() {
             if (currentState !== GAME_STATE.AIMING) return;
-            
-            setBodyBackground('normal'); // ★ 背景を戻す
-
+            setBodyBackground('normal'); 
             if (attackTargets.length > 0) {
                 currentState = GAME_STATE.ATTACKING; 
                 timeStopEffectAlpha = 0; 
-
                 attackTargets.forEach(target => {
                     const enemy = enemies[target.enemyIndex];
                     if (enemy && !enemy.isHit) {
@@ -269,7 +346,6 @@
                         enemy.splitApart = 1;
                     }
                 });
-
                 setTimeout(() => {
                     if (currentState !== GAME_STATE.GAMEOVER) {
                          currentState = GAME_STATE.IDLE;
@@ -326,7 +402,7 @@
                 currentState = GAME_STATE.GAMEOVER;
                 gameOverScreen.classList.add('active');
                 gameOverLevelDisplay.textContent = `到達レベル: ${currentLevel}`;
-                setBodyBackground('normal'); // ★ 背景を戻す
+                setBodyBackground('normal');
             }
 
             if (currentState === GAME_STATE.IDLE) {
@@ -410,8 +486,6 @@
         function draw() {
             ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             
-            // ★ 必殺技背景はCSS側で処理するので、Canvas内の描画ロジックを削除
-            // 通常時のCanvas背景
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
             ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -440,7 +514,7 @@
                 ctx.fillRect(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
             }
 
-            // 斬撃ターゲット (AIMING中のみ)
+            // 斬撃ターゲット
             if (currentState === GAME_STATE.AIMING) {
                 attackTargets.forEach(target => {
                     ctx.strokeStyle = 'cyan';
@@ -451,9 +525,8 @@
                 });
             }
 
-            // 時間停止エフェクト (AIMING と CUTSCENE の両方)
+            // 時間停止エフェクト
             if (timeStopEffectAlpha > 0) {
-                // 通常の描画の上からフィルターをかける
                 const imageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
                 const data = imageData.data;
                 for (let i = 0; i < data.length; i += 4) {
@@ -467,7 +540,6 @@
                 ctx.fillStyle = `rgba(0, 0, 0, ${0.3 * timeStopEffectAlpha})`;
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-                // 明るい侍を再描画
                 if (currentState !== GAME_STATE.ULT_CUTSCENE && playerImage.complete && playerImage.naturalWidth > 0) {
                     ctx.save();
                     ctx.filter = 'brightness(1.5) contrast(1.2)'; 
@@ -476,23 +548,20 @@
                 }
             }
 
-            // ★ 必殺技カットイン (hissatsu.png を "Cover" で描画)
+            // 必殺技カットイン (hissatsu.png を "Cover" で描画)
             if (currentState === GAME_STATE.ULT_CUTSCENE) {
                 if (hissatsuImage.complete && hissatsuImage.naturalWidth > 0) {
                     
-                    // ★ 修正: ご要望の "Cover" ロジックをここに適用
                     const imgRatio = hissatsuImage.naturalWidth / hissatsuImage.naturalHeight;
                     const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
                     let drawWidth, drawHeight, drawX, drawY;
 
-                    if (imgRatio > canvasRatio) { // 画像が横長 (Canvasより幅広)
-                        // 縦をCanvasに合わせる (横がはみ出る)
+                    if (imgRatio > canvasRatio) { // 画像が横長
                         drawHeight = CANVAS_HEIGHT;
                         drawWidth = drawHeight * imgRatio;
                         drawX = (CANVAS_WIDTH - drawWidth) / 2;
                         drawY = 0;
-                    } else { // 画像が縦長 (Canvasより背高)
-                        // 横をCanvasに合わせる (縦がはみ出る)
+                    } else { // 画像が縦長
                         drawWidth = CANVAS_WIDTH;
                         drawHeight = drawWidth / imgRatio;
                         drawX = 0;
@@ -506,7 +575,7 @@
                 }
             }
             
-            // リアルタイム斬撃エフェクト
+            // リアルタイム斬撃
             drawSlashEffects();
 
             // UI
@@ -554,7 +623,7 @@
         }
 
         function drawUI() {
-            // (変更なし)
+            // (UIゲージ描画 - 変更なし)
             const barWidth = 200;
             const hpBarHeight = 20;
             const ultBarHeight = 15;
@@ -591,35 +660,69 @@
                 const secondsLeft = (timeStopTimer / 60).toFixed(1);
                 ctx.fillText(secondsLeft, CANVAS_WIDTH / 2, 50);
             }
+
+            // ★ 必殺技ボタンの表示制御
+            if (currentState === GAME_STATE.IDLE && ultimateGauge >= maxUltimateGauge) {
+                ultimateButton.className = 'game-button ready';
+                ultimateButton.textContent = '必殺';
+            }else {
+                ultimateButton.className = 'game-button'; 
+                ultimateButton.textContent = '';
+            }
+        }
+
+        // ★ 画面リサイズ関数
+        function resizeGame() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const gameWidth = 960;
+            const gameHeight = 540;
+
+            const scale = Math.min(screenWidth / gameWidth, screenHeight / gameHeight);
+            
+            // ★ 修正: グローバルスケールを保存
+            gameScale = scale; 
+
+            gameContainer.style.transform = `scale(${scale})`;
+            gameContainer.style.left = `${(screenWidth - (gameWidth * scale)) / 2}px`;
+            gameContainer.style.top = `${(screenHeight - (gameHeight * scale)) / 2}px`;
         }
 
         // --- イベントリスナー ---
-        // (変更なし)
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', initGame);
         nextLevelButton.addEventListener('click', initGameForNextLevel); 
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && currentState === GAME_STATE.IDLE && ultimateGauge >= maxUltimateGauge) {
-                currentState = GAME_STATE.ULT_CUTSCENE;
-                cutsceneTimer = cutsceneDuration;
-                timeStopEffectAlpha = 1; 
-                attackTargets = []; 
-                ultimateGauge = 0;
-                setBodyBackground('hissatsu'); // ★ 必殺背景に変更
+        // 必殺技ボタン
+        ultimateButton.addEventListener('click', () => {
+            if (currentState === GAME_STATE.IDLE) {
+                triggerUltimate();
+            } else if (currentState === GAME_STATE.AIMING) {
+                endAimingPhase();
             }
         });
 
+        // キーボード
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); 
+                triggerUltimate();
+            }
+        });
         document.addEventListener('keyup', (e) => {
             if (e.code === 'Space' && currentState === GAME_STATE.AIMING) {
-                endAimingPhase(); // ★ 終了処理に関数を集約
+                endAimingPhase();
             }
         });
 
+        // ★ 修正: クリック座標の計算
         canvas.addEventListener('click', (e) => {
+            e.preventDefault(); 
             const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
+            
+            // ★ 修正: スケールを考慮した座標計算
+            const mouseX = (e.clientX - rect.left) / gameScale;
+            const mouseY = (e.clientY - rect.top) / gameScale;
 
             if (currentState === GAME_STATE.ULT_CUTSCENE) return;
 
@@ -637,12 +740,10 @@
             else if (currentState === GAME_STATE.IDLE) {
                 enemies.forEach((enemy) => {
                     if (enemy.isHit) return; 
-
                     const dist = Math.sqrt((mouseX - enemy.x)**2 + (mouseY - enemy.y)**2); 
                     if (dist < enemy.size && enemy.hitStunTimer <= 0) {
                         enemy.hp -= 1;
                         enemy.hitStunTimer = hitStunDuration; 
-
                         slashEffects.push({
                             x: enemy.x,
                             y: enemy.y,
@@ -650,7 +751,6 @@
                             angle: Math.random() * Math.PI, 
                             lifetime: 10 
                         });
-
                         if (enemy.hp <= 0) {
                             enemy.isHit = true;
                             enemy.splitAngle = Math.random() * Math.PI;
@@ -668,8 +768,10 @@
         }
 
         // --- ゲーム開始処理 ---
+        window.addEventListener('resize', resizeGame); 
         initGame();
         gameLoop();
+        resizeGame(); 
         
     </script>
 </body>
