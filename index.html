@@ -34,7 +34,6 @@
         }
 
         canvas {
-            border: 2px solid #ccc;
             background-color: rgba(0, 0, 0, 0.8); 
             position: absolute;
             z-index: 1;
@@ -673,19 +672,21 @@
 
         // ★ 画面リサイズ関数
         function resizeGame() {
-            const screenWidth = window.innerWidth;
-            const screenHeight = window.innerHeight;
+            const marginPercentage = 0.85; // ★ 画面の95%のサイズを基準にする
+            const screenWidth = window.innerWidth * marginPercentage; // ★
+            const screenHeight = window.innerHeight * marginPercentage; // ★
             const gameWidth = 960;
             const gameHeight = 540;
 
             const scale = Math.min(screenWidth / gameWidth, screenHeight / gameHeight);
             
-            // ★ 修正: グローバルスケールを保存
             gameScale = scale; 
 
             gameContainer.style.transform = `scale(${scale})`;
-            gameContainer.style.left = `${(screenWidth - (gameWidth * scale)) / 2}px`;
-            gameContainer.style.top = `${(screenHeight - (gameHeight * scale)) / 2}px`;
+            
+            // ★ センタリングはウィンドウの全幅/全高を基準にする
+            gameContainer.style.left = `${(window.innerWidth - (gameWidth * scale)) / 2}px`;
+            gameContainer.style.top = `${(window.innerHeight - (gameHeight * scale)) / 2}px`;
         }
 
         // --- イベントリスナー ---
