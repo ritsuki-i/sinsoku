@@ -9,8 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hina+Mincho&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
-            /* ★ 修正: flex関連を削除 */
             min-height: 100vh;
             margin: 0;
             background-image: url('./img/background.png'); 
@@ -38,6 +41,8 @@
             position: absolute;
             z-index: 1;
         }
+        
+        /* Enhanced overlay styling with backdrop blur and better visual hierarchy */
         .overlay {
             position: absolute;
             top: 0;
@@ -49,58 +54,213 @@
             align-items: center;
             flex-direction: column;
             text-align: center;
-            font-size: 2em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
             pointer-events: none; 
             display: none;
             z-index: 2;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(20, 20, 30, 0.9) 100%);
+            backdrop-filter: blur(8px);
         }
+        
         .overlay.active {
             display: flex;
             pointer-events: auto;
+            animation: fadeIn 0.3s ease-out;
         }
-        .overlay p { margin: 10px 0; }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Styled title with decorative elements */
+        .overlay .title {
+            font-size: 4em;
+            margin: 0 0 20px 0;
+            letter-spacing: 0.3em;
+            position: relative;
+            padding: 0 40px;
+            background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .overlay .title::before,
+        .overlay .title::after {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.4em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .overlay .title::before {
+            left: 0;
+        }
+        
+        .overlay .title::after {
+            right: 0;
+        }
+        
+        .overlay p { 
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        
+        /* Enhanced key hints with better readability */
         .overlay .key-hint {
-            font-size: 0.7em;
-            color: #ccc;
+            font-size: 0.9em;
+            color: #b0b0b0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
         }
+        
+        /* Modern button design with hover effects */
         .overlay button {
             font-family: 'Hina Mincho', serif;
-            font-size: 0.8em;
-            padding: 10px 20px;
+            font-size: 1.1em;
+            padding: 16px 48px;
+            margin-top: 20px;
             cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-            color: #333;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 200, 255, 0.3) 100%);
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            letter-spacing: 0.2em;
+            position: relative;
+            overflow: hidden;
         }
-        #gameOverScreen { color: #ff4444; }
-        #victoryScreen { color: #44ff44; }
+        
+        .overlay button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .overlay button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .overlay button:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.4) 0%, rgba(0, 200, 255, 0.5) 100%);
+            box-shadow: 0 6px 30px rgba(0, 255, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: #00ffff;
+        }
+        
+        .overlay button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .overlay button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        #gameOverScreen .title { 
+            background: linear-gradient(180deg, #ff6666 0%, #ff4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        #gameOverScreen .title::before,
+        #gameOverScreen .title::after {
+            color: #ff4444;
+            text-shadow: 0 0 10px #ff4444;
+        }
+        
+        #victoryScreen .title { 
+            background: linear-gradient(180deg, #66ff66 0%, #44ff44 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        #victoryScreen .title::before,
+        #victoryScreen .title::after {
+            color: #44ff44;
+            text-shadow: 0 0 10px #44ff44;
+        }
 
+        /* Enhanced ultimate button with pulsing animation */
         .game-button {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
+            bottom: 30px;
+            right: 30px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-family: 'Hina Mincho', serif;
             z-index: 100;
             display: none;
-            border: 2px solid white;
+            border: 3px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.1em;
         }
+        
         .game-button.ready {
             display: block;
-            background-color: rgba(0, 255, 255, 0.7); 
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.6) 0%, rgba(0, 200, 255, 0.8) 100%);
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 4px 20px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s ease-in-out infinite;
         }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), 0 4px 20px rgba(0, 0, 0, 0.5);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 40px rgba(0, 255, 255, 0.8), 0 6px 25px rgba(0, 0, 0, 0.5);
+            }
+        }
+        
         .game-button.aiming {
             display: block;
-            background-color: rgba(255, 0, 0, 0.7); 
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.6) 0%, rgba(255, 100, 100, 0.8) 100%);
+            border-color: #ff4444;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .game-button:active {
+            transform: scale(0.95);
         }
 
         #rotate-device-overlay {
@@ -116,6 +276,7 @@
             text-align: center;
             font-family: 'Hina Mincho', serif;
         }
+        
         @media (orientation: portrait) {
             #rotate-device-overlay {
                 display: flex;
@@ -135,22 +296,22 @@
         <canvas id="gameCanvas" width="960" height="540"></canvas>
         
         <div id="startScreen" class="overlay active">
-            <p>- 神速 -</p>
-            <button id="startButton">始める</button>
-            <p class="key-hint" style="margin-top: 20px;">[クリック]: 通常攻撃 (一撃で撃破)</p>
+            <p class="title">神速</p>
+            <button id="startButton"><span>始める</span></button>
+            <p class="key-hint">[クリック]: 通常攻撃 (一撃で撃破)</p>
             <p class="key-hint">[Space] ゲージMAXで: 必殺・7秒間時間停止</p>
         </div>
 
         <div id="gameOverScreen" class="overlay">
-            <p>GAME OVER</p>
-            <p id="gameOverLevelDisplay" class="key-hint" style="margin-top: 10px; font-size: 1em;">到達レベル: 1</p>
-            <button id="restartButton">再挑戦</button>
+            <p class="title">敗北</p>
+            <p id="gameOverLevelDisplay" class="key-hint" style="font-size: 1.2em; margin-top: 20px;">到達レベル: 1</p>
+            <button id="restartButton"><span>再挑戦</span></button>
         </div>
 
         <div id="victoryScreen" class="overlay">
-            <p>VICTORY</p>
-            <button id="nextLevelButton">次の戦場へ</button>
-            <p id="currentLevelDisplay" class="key-hint" style="margin-top: 20px;">現在のレベル: 1</p>
+            <p class="title">勝利</p>
+            <p id="currentLevelDisplay" class="key-hint" style="font-size: 1.2em; margin-top: 20px;">現在のレベル: 1</p>
+            <button id="nextLevelButton"><span>次の戦場へ</span></button>
         </div>
     </div>
 
@@ -170,7 +331,6 @@
         const CANVAS_WIDTH = canvas.width;
         const CANVAS_HEIGHT = canvas.height;
 
-        // --- ★ 修正: グローバルスケール変数を追加 ---
         let gameScale = 1;
 
         // --- 画像ロード ---
@@ -216,9 +376,9 @@
         const maxUltimateGauge = 480;
         const hitStunDuration = 30;
         let cutsceneTimer = 0;
-        const cutsceneDuration = 120; // 2秒
+        const cutsceneDuration = 120;
         let timeStopTimer = 0;
-        const timeStopDuration = 420; // 7秒
+        const timeStopDuration = 420;
 
         // --- 敵 ---
         let enemies = [];
@@ -547,20 +707,19 @@
                 }
             }
 
-            // 必殺技カットイン (hissatsu.png を "Cover" で描画)
+            // 必殺技カットイン
             if (currentState === GAME_STATE.ULT_CUTSCENE) {
                 if (hissatsuImage.complete && hissatsuImage.naturalWidth > 0) {
-                    
                     const imgRatio = hissatsuImage.naturalWidth / hissatsuImage.naturalHeight;
                     const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
                     let drawWidth, drawHeight, drawX, drawY;
 
-                    if (imgRatio > canvasRatio) { // 画像が横長
+                    if (imgRatio > canvasRatio) {
                         drawHeight = CANVAS_HEIGHT;
                         drawWidth = drawHeight * imgRatio;
                         drawX = (CANVAS_WIDTH - drawWidth) / 2;
                         drawY = 0;
-                    } else { // 画像が縦長
+                    } else {
                         drawWidth = CANVAS_WIDTH;
                         drawHeight = drawWidth / imgRatio;
                         drawX = 0;
@@ -586,7 +745,6 @@
         }
 
         function drawSplitEnemy(enemy) {
-            // (変更なし)
             const angle = enemy.splitAngle;
             const dx1 = Math.cos(angle) * enemy.splitApart;
             const dy1 = Math.sin(angle) * enemy.splitApart;
@@ -604,7 +762,6 @@
         }
 
         function drawSlashEffects() {
-            // (変更なし)
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.lineWidth = 4;
             ctx.lineCap = 'round';
@@ -622,59 +779,123 @@
         }
 
         function drawUI() {
-            // (UIゲージ描画 - 変更なし)
-            const barWidth = 200;
-            const hpBarHeight = 20;
-            const ultBarHeight = 15;
+            const barWidth = 220;
+            const hpBarHeight = 24;
+            const ultBarHeight = 18;
             const x = CANVAS_WIDTH / 2 - barWidth / 2;
-            const hpY = CANVAS_HEIGHT - 40; 
-            const ultY = hpY - ultBarHeight - 5; 
+            const hpY = CANVAS_HEIGHT - 50; 
+            const ultY = hpY - ultBarHeight - 10; 
 
-            ctx.fillStyle = '#444'; 
+            // Ultimate gauge background
+            ctx.fillStyle = 'rgba(20, 20, 30, 0.8)'; 
+            ctx.fillRect(x - 2, ultY - 2, barWidth + 4, ultBarHeight + 4);
+            
+            ctx.fillStyle = '#1a1a2e'; 
             ctx.fillRect(x, ultY, barWidth, ultBarHeight);
+            
             const currentUltWidth = (ultimateGauge / maxUltimateGauge) * barWidth;
             const isReady = ultimateGauge >= maxUltimateGauge;
-            ctx.fillStyle = isReady ? '#00ffff' : '#0088ff'; 
+            
+            // Ultimate gauge fill with gradient
+            const ultGradient = ctx.createLinearGradient(x, ultY, x + barWidth, ultY);
+            if (isReady) {
+                ultGradient.addColorStop(0, '#00ffff');
+                ultGradient.addColorStop(1, '#00ccff');
+            } else {
+                ultGradient.addColorStop(0, '#0066ff');
+                ultGradient.addColorStop(1, '#0099ff');
+            }
+            ctx.fillStyle = ultGradient;
             ctx.fillRect(x, ultY, currentUltWidth, ultBarHeight);
-            ctx.strokeStyle = '#ccc';
+            
+            // Ultimate gauge border
+            ctx.strokeStyle = isReady ? '#00ffff' : 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
             ctx.strokeRect(x, ultY, barWidth, ultBarHeight);
+            
+            // Ultimate gauge glow effect when ready
+            if (isReady) {
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 15;
+                ctx.strokeRect(x, ultY, barWidth, ultBarHeight);
+                ctx.shadowBlur = 0;
+            }
+            
+            // Ultimate text
             ctx.fillStyle = isReady ? '#00ffff' : 'white';
-            ctx.font = '12px "Hina Mincho", serif';
+            ctx.font = 'bold 13px "Hina Mincho", serif';
             ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
             const ultText = (currentState === GAME_STATE.AIMING || currentState === GAME_STATE.ULT_CUTSCENE) ? "神速発動中..." : (isReady ? "必殺技 READY!" : "必殺技");
-            ctx.fillText(ultText, CANVAS_WIDTH / 2, ultY + ultBarHeight - 3);
+            ctx.fillText(ultText, CANVAS_WIDTH / 2, ultY + ultBarHeight / 2 + 5);
+            ctx.shadowBlur = 0;
 
-            ctx.fillStyle = '#555';
+            // HP bar background
+            ctx.fillStyle = 'rgba(20, 20, 30, 0.8)';
+            ctx.fillRect(x - 2, hpY - 2, barWidth + 4, hpBarHeight + 4);
+            
+            ctx.fillStyle = '#2a1a1a';
             ctx.fillRect(x, hpY, barWidth, hpBarHeight);
+            
             const currentHpWidth = (player.hp / player.maxHp) * barWidth;
-            ctx.fillStyle = player.hp < 30 ? '#ff4444' : '#44cc44';
+            
+            // HP bar fill with gradient
+            const hpGradient = ctx.createLinearGradient(x, hpY, x + barWidth, hpY);
+            if (player.hp < 30) {
+                hpGradient.addColorStop(0, '#ff3333');
+                hpGradient.addColorStop(1, '#ff6666');
+            } else {
+                hpGradient.addColorStop(0, '#33cc33');
+                hpGradient.addColorStop(1, '#66ff66');
+            }
+            ctx.fillStyle = hpGradient;
             ctx.fillRect(x, hpY, currentHpWidth > 0 ? currentHpWidth : 0, hpBarHeight);
-            ctx.strokeStyle = '#ccc';
+            
+            // HP bar border
+            ctx.strokeStyle = player.hp < 30 ? '#ff4444' : 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
             ctx.strokeRect(x, hpY, barWidth, hpBarHeight);
+            
+            // HP text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px "Hina Mincho", serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(`HP: ${Math.max(0, Math.round(player.hp))} / ${player.maxHp}`, CANVAS_WIDTH / 2, hpY + hpBarHeight / 2 + 5);
+            ctx.shadowBlur = 0;
 
+            // Time stop countdown
             if (currentState === GAME_STATE.AIMING && timeStopTimer > 0) {
-                ctx.fillStyle = 'cyan';
-                ctx.font = '30px "Hina Mincho", serif';
+                ctx.fillStyle = '#00ffff';
+                ctx.font = 'bold 36px "Hina Mincho", serif';
                 ctx.textAlign = 'center';
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 20;
                 const secondsLeft = (timeStopTimer / 60).toFixed(1);
-                ctx.fillText(secondsLeft, CANVAS_WIDTH / 2, 50);
+                ctx.fillText(secondsLeft, CANVAS_WIDTH / 2, 60);
+                ctx.shadowBlur = 0;
             }
 
-            // ★ 必殺技ボタンの表示制御
+            // Ultimate button display control
             if (currentState === GAME_STATE.IDLE && ultimateGauge >= maxUltimateGauge) {
                 ultimateButton.className = 'game-button ready';
                 ultimateButton.textContent = '必殺';
-            }else {
+            } else if (currentState === GAME_STATE.AIMING) {
+                ultimateButton.className = 'game-button aiming';
+                ultimateButton.textContent = '発動';
+            } else {
                 ultimateButton.className = 'game-button'; 
                 ultimateButton.textContent = '';
             }
         }
 
-        // ★ 画面リサイズ関数
+        // 画面リサイズ関数
         function resizeGame() {
-            const marginPercentage = 0.85; // ★ 画面の95%のサイズを基準にする
-            const screenWidth = window.innerWidth * marginPercentage; // ★
-            const screenHeight = window.innerHeight * marginPercentage; // ★
+            const marginPercentage = 0.85;
+            const screenWidth = window.innerWidth * marginPercentage;
+            const screenHeight = window.innerHeight * marginPercentage;
             const gameWidth = 960;
             const gameHeight = 540;
 
@@ -684,7 +905,6 @@
 
             gameContainer.style.transform = `scale(${scale})`;
             
-            // ★ センタリングはウィンドウの全幅/全高を基準にする
             gameContainer.style.left = `${(window.innerWidth - (gameWidth * scale)) / 2}px`;
             gameContainer.style.top = `${(window.innerHeight - (gameHeight * scale)) / 2}px`;
         }
@@ -716,12 +936,11 @@
             }
         });
 
-        // ★ 修正: クリック座標の計算
+        // クリック座標の計算
         canvas.addEventListener('click', (e) => {
             e.preventDefault(); 
             const rect = canvas.getBoundingClientRect();
             
-            // ★ 修正: スケールを考慮した座標計算
             const mouseX = (e.clientX - rect.left) / gameScale;
             const mouseY = (e.clientY - rect.top) / gameScale;
 
